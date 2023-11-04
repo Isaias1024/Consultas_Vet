@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="manejoUsuarios.cpp" />
     <ClCompile Include="Veterinaria_UI.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +138,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Veterinaria_UI.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="citas.dat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

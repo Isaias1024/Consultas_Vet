@@ -1,5 +1,5 @@
 ﻿  DemoCIOOPA.cpp
 D:\Cursos\Proyecto Veteriania\Consultas_Vet\Ejemplos_Clase\DemoCIOOPA\DemoCIOOPA\DemoCIOOPA.cpp(298,25): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
 D:\Cursos\Proyecto Veteriania\Consultas_Vet\Ejemplos_Clase\DemoCIOOPA\DemoCIOOPA\DemoCIOOPA.cpp(397,25): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
-D:\Cursos\Proyecto Veteriania\Consultas_Vet\Ejemplos_Clase\DemoCIOOPA\DemoCIOOPA\DemoCIOOPA.cpp(479,25): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
+D:\Cursos\Proyecto Veteriania\Consultas_Vet\Ejemplos_Clase\DemoCIOOPA\DemoCIOOPA\DemoCIOOPA.cpp(467,25): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
   DemoCIOOPA.vcxproj -> D:\Cursos\Proyecto Veteriania\Consultas_Vet\Ejemplos_Clase\DemoCIOOPA\x64\Debug\DemoCIOOPA.exe

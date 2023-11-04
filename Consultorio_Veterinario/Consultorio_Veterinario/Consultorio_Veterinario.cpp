@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
+#include <fstream>
 
 using namespace std;
 
@@ -36,6 +37,7 @@ CITA* crearCita(char nombreCliente[100], char fechaHora[100], char nombreMascota
 	strcpy_s(nuevo->status, status);
 	return nuevo;
 }
+
 NODOCITA* nuevoNodo(CITA* cita) {
 	NODOCITA* nodo = new NODOCITA;
 	nodo->cita = cita;
@@ -54,6 +56,7 @@ NODOCITA* buscarNombre(char* buscarNomCliente) {
 	}
 	return indice;
 }
+
 void AgregarCitaInicio(CITA* cita) {
 	NODOCITA* nodo = nuevoNodo(cita);
 	if (LISTACITAS.origen == NULL) {
@@ -80,6 +83,7 @@ void agregarCitaFinal(CITA* cita) {
 		nodo->siguiente = NULL;
 	}
 }
+
 void AgregarCitaMedio(char* buscar, CITA* cita) {
 	NODOCITA* busqueda = buscarNombre(buscar);
 	if (busqueda == NULL)
@@ -103,6 +107,7 @@ CITA* EliminarCitaInicio() {
 	delete anterior;
 	return cita;
 }
+
 CITA* EliminarCitaFinal() {
 	if (LISTACITAS.origen == NULL)
 		return NULL;
@@ -145,6 +150,7 @@ CITA* EliminarCitaMedio(char* nombre) {
 	delete busqueda;
 	return cita;
 }
+
 void ImprimirListaCita() {
 	NODOCITA* indice = LISTACITAS.origen;
 	while (indice != NULL) {
@@ -159,8 +165,6 @@ void ImprimirListaCita() {
 		indice = indice->siguiente;
 	}
 }
-
-
 
 void EliminarListaCita() {
 	while (LISTACITAS.origen != NULL) {
@@ -187,20 +191,20 @@ void EditarCita(char* nombreCliente) {
 	float nuevoCosto;
 	char nuevoStatus[100];
 
-	cout << "Ingrese el nuevo nombre de la mascota: ";
+	cout << "Nuevo nombre de la mascota: ";
 	cin.ignore();
 	cin.getline(nuevoNombreMascota, 50);
 
-	cout << "Ingrese la nueva fecha y hora de la consulta: ";
+	cout << "Nueva fecha y hora de la consulta: ";
 	cin.getline(nuevaFechaHora, 50);
 
-	cout << "Ingrese el nuevo motivo de la consulta: ";
+	cout << "Nuevo motivo de la consulta: ";
 	cin.getline(nuevoMotivo, 50);
 
-	cout << "Ingrese el nuevo costo de la consulta: ";
+	cout << "Nuevo costo de la consulta: ";
 	cin >> nuevoCosto;
 
-	cout << "Ingrese el nuevo estatus de la consulta: ";
+	cout << "Nuevo estatus de la consulta: ";
 	cin.ignore();
 	cin.getline(nuevoStatus, 50);
 
@@ -235,7 +239,6 @@ bool esTextoValido(const std::string& nombre) {
 	return true;
 }
 
-
 // Validar si una cadena contiene solo números
 bool esNumeroValido(const std::string& str) {
 	for (char c : str) {
@@ -246,10 +249,51 @@ bool esNumeroValido(const std::string& str) {
 	return true;
 }
 
+void guardarCitasEnArchivo(const char* nombreArchivo) {
+	std::ofstream archivo(nombreArchivo, std::ios::binary);
+
+	if (archivo.is_open()) {
+		NODOCITA* nodo = LISTACITAS.origen;
+
+		while (nodo != NULL) {
+			archivo.write(reinterpret_cast<const char*>(nodo->cita), sizeof(CITA));
+			nodo = nodo->siguiente;
+		}
+
+		archivo.close();
+		std::cout << "Citas guardadas en el archivo binario." << std::endl;
+	}
+	else {
+		std::cerr << "No se pudo abrir el archivo para escritura." << std::endl;
+	}
+}
+
+void cargarCitasDesdeArchivo(const char* nombreArchivo) {
+	std::ifstream archivo(nombreArchivo, std::ios::binary);
+
+	if (archivo.is_open()) {
+		// Primero, elimina todas las citas existentes en la lista
+		EliminarListaCita();
+
+		CITA cita;
+		while (archivo.read(reinterpret_cast<char*>(&cita), sizeof(CITA))) {
+			CITA* nuevaCita = crearCita(cita.nombreCliente, cita.fechaHora, cita.nombreMascota, cita.motivo, cita.costo, cita.status);
+			agregarCitaFinal(nuevaCita);
+		}
+
+		archivo.close();
+		std::cout << "Citas cargadas desde el archivo binario." << std::endl;
+	}
+	else {
+		std::cerr << "No se pudo abrir el archivo para lectura." << std::endl;
+	}
+}
+
+
 int main()
 {
 	CITA citas;
-
+	cargarCitasDesdeArchivo("citas.dat");
 	while (true)
 	{
 		cout << "\nOpciones:" << endl;
@@ -258,11 +302,13 @@ int main()
 		cout << "3. Modificar cita" << endl;
 		cout << "4. Eliminar cita" << endl;
 		cout << "5. Salir" << endl;
+		cout << "6. Guardar" << endl;
+		cout << "7 Cargar" << endl;
 		cout << "Seleccione una opción: ";
 
 		int opcion;
 		cin >> opcion;
-		
+
 		if (opcion == 1)
 		{
 			char nombreCliente[100];
@@ -279,7 +325,7 @@ int main()
 				cout << "El nombre no es válido. Debe contener solo letras y espacios, Ultima oportunidad" << endl;
 				continue;
 			}
-	
+
 			cout << "Ingrese el nombre de la mascota: " << endl;
 			cin.getline(nombreMascota, 100);
 
@@ -325,6 +371,9 @@ int main()
 		else if (opcion == 5)
 		{
 			break; // Salir del programa
+		}
+		else if (opcion == 6) {
+			guardarCitasEnArchivo("citas.dat");
 		}
 		else
 		{

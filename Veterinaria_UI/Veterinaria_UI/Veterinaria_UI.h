@@ -10,6 +10,8 @@ LRESULT CALLBACK VentanaRegistro(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 LRESULT CALLBACK VentanaPrincipal(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool menuVentanas(int opcion, HWND ventana);
 bool CrearVentanaYCentrar(HWND& ventana, LPCWSTR recursoVentana, DLGPROC procedimientoVentana);
-
+void EliminarListaCita();
+void guardarCitasEnArchivo(const char* nombreArchivo);
+void cargarCitasDesdeArchivo(const char* nombreArchivo);
 
 #endif

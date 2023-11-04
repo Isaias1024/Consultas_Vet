@@ -1,8 +1,7 @@
 #include "framework.h"
 #include "Veterinaria_UI.h" //La creamos para aqui referenciar los IDs de todos los recursos
+#include <fstream>
 #include <string>
-#include <stdio.h>
-#include <commctrl.h>
 
 using namespace std;
 #define MAX_LOADSTRING 100
@@ -32,7 +31,6 @@ struct CITAS {
 	NODOCITA* fin;
 } LISTACITAS;
 
-
 struct VETERINARIO {
 	string nombreVeterinario;
 	string cedulaVeterinario;
@@ -41,28 +39,37 @@ struct VETERINARIO {
 };
 
 // Definición de la estructura NODOCITA para apuntar a una cita
-struct NODOVETERINARIO {
+struct NODOVET{
 	VETERINARIO* cita;
-	NODOVETERINARIO* anterior;
-	NODOVETERINARIO* siguiente;
+	NODOVET* anterior;
+	NODOVET* siguiente;
 };
 
 struct VETERINARIOS {
-	NODOVETERINARIO* origen;
-	NODOVETERINARIO* fin;
+	NODOVET* origen;
+	NODOVET* fin;
 } LISTAVETERINARIOS;
 
 NODOCITA* nuevoNodo(CITA* cita);
 NODOCITA* buscarNombre(const string& buscarNomCliente);
+CITA* crearCita(const string& nombreCliente, const string& fechaHora, const string& nombreMascota, const string& motivo, float costo, const string& status);
 CITA* EliminarCitaMedio(const string& nombre);
 CITA* EliminarCitaFinal();
 CITA* EliminarCitaInicio();
 void agregarCitaFinal(CITA* cita);
 
+NODOVET* nuevoNodoVet(VETERINARIO* veterinario);
+NODOVET* buscarVet(const string& buscarNomVet);
+VETERINARIO* crearVet(const string& buscarNomVet, const string& cedula, const string& nombreUsuario, const string& psw);
+VETERINARIO* EliminarVetMedio(const string& nombre);
+VETERINARIO* EliminarVetFinal();
+VETERINARIO* EliminarVetInicio();
+void agregarCitaFinal(VETERINARIO* veterinario);
+
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, PSTR cmdLine, int cShow) {
 
 	HWND ventana = CreateDialog(hInst, MAKEINTRESOURCE(IDD_MAIN_WINDOW), NULL, VentanaPrincipal);
-
 	if (!ventana) {
 		return FALSE;
 	}
@@ -99,6 +106,7 @@ LRESULT CALLBACK VentanaPrincipal(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 }
 
 LRESULT CALLBACK VentanaUsuario(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	cargarCitasDesdeArchivo("citas.dat");
 	switch (msg) {
 	case WM_COMMAND: {
 		int wmId = LOWORD(wParam);
@@ -138,6 +146,16 @@ LRESULT CALLBACK VentanaRegistro(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK VentanaAgregar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 	switch (msg) {
+	case WM_INITDIALOG: {
+
+		SendMessage(GetDlgItem(hWnd, IDC_AGR_ESPECIE), CB_ADDSTRING, 0, (LPARAM)L"Perro");
+		SendMessage(GetDlgItem(hWnd, IDC_AGR_ESPECIE), CB_ADDSTRING, 0, (LPARAM)L"Gato");
+		SendMessage(GetDlgItem(hWnd, IDC_AGR_ESPECIE), CB_ADDSTRING, 0, (LPARAM)L"Conejo");
+
+		SendMessage(GetDlgItem(hWnd, IDC_AGR_STATUS), CB_ADDSTRING, 0, (LPARAM)L"Activa");
+		SendMessage(GetDlgItem(hWnd, IDC_AGR_STATUS), CB_ADDSTRING, 0, (LPARAM)L"Urgente");
+
+	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wParam);
 
@@ -202,19 +220,12 @@ LRESULT CALLBACK VentanaAgregar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 				costoCitaFloat = stof(costoCita);
 			}
 
-			// Crear la estructura CITA
-			CITA* nuevo = new CITA;
-			nuevo->costo = costoCitaFloat;
-			nuevo->fechaHora = fechaCitaA; // Debes asignar el valor adecuado
-			nuevo->motivo = motivoCitaA;
-			nuevo->nombreCliente = nombreClienteA;
-			nuevo->nombreMascota = nombreMascotaA;
-			nuevo->status = statusCitaA;
-
-			agregarCitaFinal(nuevo);
+			CITA* nuevaCita = crearCita(nombreClienteA, fechaCitaA, nombreMascotaA, motivoCitaA, costoCitaFloat, statusCitaA);
+			agregarCitaFinal(nuevaCita);
 
 			// Mostrar el nombre agregado en un messageBox
 			wstring message = L"La cita de " + wstring(nombreCliente) + L" se agrego exitosamente!";
+			guardarCitasEnArchivo("citas.dat");
 			int respuesta = MessageBox(hWnd, message.c_str(), L"Agregado", MB_OK);
 
 			if (respuesta == IDOK) {
@@ -238,11 +249,12 @@ LRESULT CALLBACK VentanaAgregar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 	switch (msg) {
-
-	case WM_COMMAND: {
+	case WM_COMMAND: 
+	{
 		int wmId = LOWORD(wParam);
 
-		switch (wmId) {
+		switch (wmId)
+		{
 		case IDB_EDT_BUSCAR: {
 
 			// Leemos los datos desde el UI
@@ -259,10 +271,10 @@ LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 
 			// Obtén el control de la ListBox
-			HWND hListBox = GetDlgItem(hWnd, IDC_LIST_EDITAR); // Reemplaza IDC_LIST_EDITAR con el ID de tu ListBox
+			HWND hListBox = GetDlgItem(hWnd, IDC_LIST_EDITAR); 
 
 			// Convertir datos de la cita a wstring
-			wstring nombreMascotaStr = L"Nombre de la Mascota: " + wstring(cita->cita->nombreMascota.begin(), cita->cita->nombreMascota.end());
+			wstring nombreMascotaStr = L"Mascota: " + wstring(cita->cita->nombreMascota.begin(), cita->cita->nombreMascota.end());
 			wstring motivoStr = L"Motivo: " + wstring(cita->cita->motivo.begin(), cita->cita->motivo.end());
 			wstring costoStr = L"Costo: " + to_wstring(cita->cita->costo);
 			wstring fechaHoraStr = L"Fecha y Hora: " + wstring(cita->cita->fechaHora.begin(), cita->cita->fechaHora.end());
@@ -319,6 +331,8 @@ LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Mostrar el nombre agregado en un messageBox
 			wstring message = L"La cita de " + wstring(nombreCliente) + L" se edito exitosamente!";
 			int respuesta = MessageBox(hWnd, message.c_str(), L"Editado", MB_OK);
+
+			guardarCitasEnArchivo("citas.dat");
 			HWND hListBox = GetDlgItem(hWnd, IDC_LIST_EDITAR);
 
 			if (respuesta == IDOK) {
@@ -334,8 +348,8 @@ LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 
 	}break;
-	default: return FALSE;
-
+	default: 
+		return FALSE;
 	}
 	return FALSE;
 }
@@ -392,12 +406,13 @@ LRESULT CALLBACK VentanaEliminar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 			if (citaEliminada != nullptr) {
 				MessageBox(hWnd, L"Cita eliminada", L"Exito", MB_OK);
+				guardarCitasEnArchivo("citas.dat");
 				delete citaEliminada;
 			}
 			else {
 				MessageBox(hWnd, L"No se encontro ninguna cita con ese nombre", L"Error", MB_OK);
 			}
-
+			
 			HWND hListBox = GetDlgItem(hWnd, IDC_DLT_LIST);
 			SendMessage(hListBox, LB_RESETCONTENT, 0, 0);
 			SetWindowText(GetDlgItem(hWnd, IDC_DLT_NOMBRE), L"");
@@ -417,6 +432,25 @@ LRESULT CALLBACK VentanaMostrar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 
 	return FALSE;
+}
+
+NODOCITA* nuevoNodo(CITA* cita) {
+	NODOCITA* nodo = new NODOCITA;
+	nodo->cita = cita;
+	nodo->siguiente = nullptr;
+	return nodo;
+}
+
+NODOCITA* buscarNombre(const string& buscarNomCliente) {
+	if (LISTACITAS.origen == nullptr)
+		return nullptr;
+	NODOCITA* indice = LISTACITAS.origen;
+	while (indice != nullptr) {
+		if (indice->cita->nombreCliente == buscarNomCliente)
+			break;
+		indice = indice->siguiente;
+	}
+	return indice;
 }
 
 bool menuVentanas(int opcion, HWND ventana) {
@@ -476,38 +510,87 @@ bool CrearVentanaYCentrar(HWND& ventana, LPCWSTR recursoVentana, DLGPROC procedi
 	return false;
 }
 
-void agregarCitaFinal(CITA* cita)
-{
-	NODOCITA* nodo = nuevoNodo(cita);
-	if (LISTACITAS.origen == nullptr) {
-		LISTACITAS.origen = nodo;
-		LISTACITAS.fin = nodo;
-		nodo->siguiente = nullptr;
+void guardarCitasEnArchivo(const char* nombreArchivo) {
+	// Intentar abrir el archivo para escritura binaria
+	std::ofstream archivo(nombreArchivo, std::ios::binary);
+
+	if (!archivo.is_open()) {
+		// Manejar errores al abrir el archivo
+		MessageBox(nullptr, L"No se pudo abrir el archivo para escritura.", L"Error", MB_OK);
+		return; // Salir de la función si no se pudo abrir el archivo
+	}
+
+	NODOCITA* nodo = LISTACITAS.origen;
+
+	while (nodo != nullptr) {
+		// Comprobar si el nodo o la cita son nulos antes de intentar escribirlos
+		if (nodo->cita != nullptr) {
+			// Intentar escribir el nodo->cita en el archivo
+			archivo.write(reinterpret_cast<const char*>(nodo->cita), sizeof(CITA));
+		}
+		nodo = nodo->siguiente;
+	}
+
+	archivo.close(); // Cerrar el archivo después de escribir
+
+	if (archivo.fail()) {
+		// Manejar errores al cerrar el archivo
+		MessageBox(nullptr, L"No se pudo cerrar el archivo correctamente.", L"Error", MB_OK);
+	}
+}
+
+void cargarCitasDesdeArchivo(const char* nombreArchivo) {
+	std::ifstream archivo(nombreArchivo, std::ios::binary);
+
+	if (archivo.is_open()) {
+		// Primero, elimina todas las citas existentes en la lista para evitar duplicados
+		EliminarListaCita();
+
+		// Busca el tamaño del archivo para asignar memoria
+		archivo.seekg(0, std::ios::end);
+		std::streampos fileSize = archivo.tellg();
+		archivo.seekg(0, std::ios::beg);
+
+		if (fileSize <= 0) {
+			// El archivo está vacío, no hay datos que leer.
+			archivo.close();
+			return;
+		}
+
+		// Crea un buffer para leer los datos
+		char* buffer = new char[fileSize];
+
+		// Lee los datos en el buffer
+		archivo.read(buffer, fileSize);
+
+		// Cerrar el archivo
+		archivo.close();
+
+		// Procesar los datos en el buffer
+		const CITA* citaData = reinterpret_cast<const CITA*>(buffer);
+		size_t numCitas = fileSize / sizeof(CITA);
+
+		for (size_t i = 0; i < numCitas; ++i) {
+			CITA* nuevaCita = crearCita(citaData[i].nombreCliente, citaData[i].fechaHora, citaData[i].nombreMascota, citaData[i].motivo, citaData[i].costo, citaData[i].status);
+			agregarCitaFinal(nuevaCita);
+		}
+		// Liberar la memoria del buffer
+		delete[] buffer;
 	}
 	else {
-		LISTACITAS.fin->siguiente = nodo;
-		LISTACITAS.fin = nodo;
-		nodo->siguiente = nullptr;
+		MessageBox(nullptr, L"No se pudo abrir el archivo para lectura.", L"Error", MB_OK);
 	}
 }
 
-NODOCITA* nuevoNodo(CITA* cita) {
-	NODOCITA* nodo = new NODOCITA;
-	nodo->cita = cita;
-	nodo->siguiente = nullptr;
-	return nodo;
-}
-
-NODOCITA* buscarNombre(const string& buscarNomCliente) {
-	if (LISTACITAS.origen == nullptr)
-		return nullptr;
-	NODOCITA* indice = LISTACITAS.origen;
-	while (indice != nullptr) {
-		if (indice->cita->nombreCliente == buscarNomCliente)
-			break;
-		indice = indice->siguiente;
-	}
-	return indice;
+CITA* crearCita(const string& nombreCliente, const string& fechaHora, const string& nombreMascota, const string& motivo, float costo, const string& status) {
+	CITA* nuevo = new CITA;
+	nuevo->costo = costo;
+	nuevo->fechaHora = fechaHora; // Debes asignar el valor adecuado
+	nuevo->motivo = motivo;
+	nuevo->nombreCliente = nombreCliente;
+	nuevo->nombreMascota = nombreMascota;
+	nuevo->status = status;
+	return nuevo;
 }
 
 CITA* EliminarCitaMedio(const string& nombre) {
@@ -562,3 +645,29 @@ CITA* EliminarCitaFinal() {
 		indice->siguiente = nullptr;
 	return cita;
 }
+
+void agregarCitaFinal(CITA* cita)
+{
+	NODOCITA* nodo = nuevoNodo(cita);
+	if (LISTACITAS.origen == nullptr) {
+		LISTACITAS.origen = nodo;
+		LISTACITAS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+	else {
+		LISTACITAS.fin->siguiente = nodo;
+		LISTACITAS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+}
+
+void EliminarListaCita() {
+	while (LISTACITAS.origen != NULL) {
+		NODOCITA* temporal = LISTACITAS.origen;
+		LISTACITAS.origen = LISTACITAS.origen->siguiente;
+		if (temporal->cita != NULL)
+			delete temporal->cita;
+		delete temporal;
+	}
+}
+

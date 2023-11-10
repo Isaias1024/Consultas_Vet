@@ -1,3 +1,3 @@
 ﻿  Consultorio_Veterinario.cpp
-D:\Cursos\Proyecto Veteriania\Consultas_Vet\Consultorio_Veterinario\Consultorio_Veterinario\Consultorio_Veterinario.cpp(295,7): warning C4101: 'citas': variable local sin referencia
+D:\Cursos\Proyecto Veteriania\Consultas_Vet\Consultorio_Veterinario\Consultorio_Veterinario\Consultorio_Veterinario.cpp(379,9): warning C4101: 'cedulaVeterinario': variable local sin referencia
   Consultorio_Veterinario.vcxproj -> D:\Cursos\Proyecto Veteriania\Consultas_Vet\Consultorio_Veterinario\x64\Debug\Consultorio_Veterinario.exe

@@ -18,9 +18,6 @@
     <ClCompile Include="Veterinaria_UI.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="manejoUsuarios.cpp">
-      <Filter>Archivos de recursos</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

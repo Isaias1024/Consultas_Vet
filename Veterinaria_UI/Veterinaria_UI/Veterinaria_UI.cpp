@@ -31,23 +31,24 @@ struct CITAS {
 	NODOCITA* fin;
 } LISTACITAS;
 
-struct VETERINARIO {
+struct VETERINARIO
+{
 	string nombreVeterinario;
-	string cedulaVeterinario;
-	string nombreUsuario;
-	string passwordVeterinario;
+	string cedula;
+	//Foto
+	string usuario;
+	string contrasena;
 };
 
-// Definición de la estructura NODOCITA para apuntar a una cita
-struct NODOVET{
-	VETERINARIO* cita;
-	NODOVET* anterior;
-	NODOVET* siguiente;
+struct NODOVET {
+	VETERINARIO* veterinario; //datos de veterinario
+	NODOVET* anterior; //nodo datos de veterinario anterior
+	NODOVET* siguiente; //nodo datos de veterinario despues
 };
 
 struct VETERINARIOS {
-	NODOVET* origen;
-	NODOVET* fin;
+	NODOVET* origen; //inicio del nodo(lista)
+	NODOVET* fin; //final del nodo(lista)
 } LISTAVETERINARIOS;
 
 NODOCITA* nuevoNodo(CITA* cita);
@@ -58,14 +59,11 @@ CITA* EliminarCitaFinal();
 CITA* EliminarCitaInicio();
 void agregarCitaFinal(CITA* cita);
 
-NODOVET* nuevoNodoVet(VETERINARIO* veterinario);
-NODOVET* buscarVet(const string& buscarNomVet);
-VETERINARIO* crearVet(const string& buscarNomVet, const string& cedula, const string& nombreUsuario, const string& psw);
-VETERINARIO* EliminarVetMedio(const string& nombre);
-VETERINARIO* EliminarVetFinal();
-VETERINARIO* EliminarVetInicio();
-void agregarCitaFinal(VETERINARIO* veterinario);
-
+VETERINARIO* crearUsuario(const string& nombreVeterinario, const string& cedula, const string& nombreUsuario, const string& pswUsuario);
+NODOVET* nuevoNodoVeterinario(VETERINARIO* veterinario);
+NODOVET* validarUsuarioPsw(const string& usuario, const string& psw);
+bool verificarNombreUsuarioExiste(const string& usuario);
+void agregarVeterinarioFinal(VETERINARIO* veterinario);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, PSTR cmdLine, int cShow) {
 
@@ -91,8 +89,35 @@ LRESULT CALLBACK VentanaPrincipal(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 	switch (msg) {
 	case WM_COMMAND: {
 		int wmId = LOWORD(wParam);
-		if (menuVentanas(wmId, hWnd)) {
-			return FALSE;
+		switch (wmId)
+		{
+		case ID_BTN_LOGIN: {
+			wchar_t nombreUsuario[255];
+			wchar_t nombrePsw[255];
+
+			GetDlgItemText(hWnd, IDC_L_USUARIO, nombreUsuario, 255);
+			GetDlgItemText(hWnd, IDC_L_PSW, nombrePsw, 255);
+
+			wstring nombreUsuarioStr(nombreUsuario);
+			wstring nombrePswStr(nombrePsw);
+
+			string nombreUsuarioA(nombreUsuarioStr.begin(), nombreUsuarioStr.end());
+			string nombrePswA(nombrePswStr.begin(), nombrePswStr.end());
+
+			NODOVET* usuario = validarUsuarioPsw(nombreUsuarioA, nombrePswA);
+			if (usuario == nullptr) {
+				MessageBox(hWnd, L"Error en el Usuario o Password, intente de nuevo", L"log in", MB_OK);
+				break;
+			}
+
+			wstring cedulaUsuario = L"Cedula: " + wstring(usuario->veterinario->cedula.begin(), usuario->veterinario->cedula.end());
+			int respuesta = MessageBox(hWnd, cedulaUsuario.c_str(), L"MSG", MB_OK);
+			return CrearVentanaYCentrar(hWnd, MAKEINTRESOURCE(IDD_VENTANA_SESION), VentanaUsuario);
+
+		}break;
+		case ID_BTN_REGISTRAR: {
+			return CrearVentanaYCentrar(hWnd, MAKEINTRESOURCE(IDD_VENTANA_REGISTRAR), VentanaRegistro);
+		}break;
 		}
 	}break;
 	case WM_CLOSE:
@@ -128,10 +153,39 @@ LRESULT CALLBACK VentanaRegistro(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 	switch (msg) {
 	case WM_COMMAND: {
 		int wmId = LOWORD(wParam);
-		//Si no quieres tener un switch dentro de otro switch, puedes usar la funcion del menu y remover el switch (wmId) {}
-		//if (menu(wmId, hWnd)) { 
-		//	return FALSE;
-		//}
+		switch (wmId) {
+		case IDB_REG_USUARIO: {
+			// Leemos los datos desde el UI
+			wchar_t nombreUsuario[255];
+			wchar_t nombrePsw[255];
+
+			GetDlgItemText(hWnd, IDC_R_USUARIO, nombreUsuario, 255);
+			GetDlgItemText(hWnd, IDC_R_PSW, nombrePsw, 255);
+
+			wstring nombreUsuarioStr(nombreUsuario);
+			wstring nombrePswStr(nombrePsw);
+
+			string nombreUsuarioA(nombreUsuarioStr.begin(), nombreUsuarioStr.end());
+			string nombrePswA(nombrePswStr.begin(), nombrePswStr.end());
+			if (verificarNombreUsuarioExiste(nombreUsuarioA))
+			{
+				MessageBox(hWnd, L"Error en el Usuario ya existe, intente uno nuevo", L"Registro", MB_OK);
+				break;
+			}
+
+			VETERINARIO* nuevoUsuario = crearUsuario("Isaias", "C3DUL4", nombreUsuarioA, nombrePswA);
+			agregarVeterinarioFinal(nuevoUsuario);
+			// Mostrar el nombre agregado en un messageBox
+			wstring message = L"El usuario" + wstring(nombreUsuario) + L" se agrego exitosamente!";
+			int respuesta = MessageBox(hWnd, message.c_str(), L"Agregado", MB_OK);
+
+			if (respuesta == IDOK) {
+				// Limpiar el contenido del cuadro de texto
+				SetWindowText(GetDlgItem(hWnd, IDC_R_USUARIO), L"");
+				SetWindowText(GetDlgItem(hWnd, IDC_R_PSW), L"");
+			}
+		}break;
+		}
 	}break;
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
@@ -249,7 +303,7 @@ LRESULT CALLBACK VentanaAgregar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 	switch (msg) {
-	case WM_COMMAND: 
+	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
 
@@ -271,7 +325,7 @@ LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 
 			// Obtén el control de la ListBox
-			HWND hListBox = GetDlgItem(hWnd, IDC_LIST_EDITAR); 
+			HWND hListBox = GetDlgItem(hWnd, IDC_LIST_EDITAR);
 
 			// Convertir datos de la cita a wstring
 			wstring nombreMascotaStr = L"Mascota: " + wstring(cita->cita->nombreMascota.begin(), cita->cita->nombreMascota.end());
@@ -348,7 +402,7 @@ LRESULT CALLBACK VentanaEditar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 
 	}break;
-	default: 
+	default:
 		return FALSE;
 	}
 	return FALSE;
@@ -412,7 +466,7 @@ LRESULT CALLBACK VentanaEliminar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 			else {
 				MessageBox(hWnd, L"No se encontro ninguna cita con ese nombre", L"Error", MB_OK);
 			}
-			
+
 			HWND hListBox = GetDlgItem(hWnd, IDC_DLT_LIST);
 			SendMessage(hListBox, LB_RESETCONTENT, 0, 0);
 			SetWindowText(GetDlgItem(hWnd, IDC_DLT_NOMBRE), L"");
@@ -430,38 +484,12 @@ LRESULT CALLBACK VentanaEliminar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK VentanaMostrar(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 
-
 	return FALSE;
-}
-
-NODOCITA* nuevoNodo(CITA* cita) {
-	NODOCITA* nodo = new NODOCITA;
-	nodo->cita = cita;
-	nodo->siguiente = nullptr;
-	return nodo;
-}
-
-NODOCITA* buscarNombre(const string& buscarNomCliente) {
-	if (LISTACITAS.origen == nullptr)
-		return nullptr;
-	NODOCITA* indice = LISTACITAS.origen;
-	while (indice != nullptr) {
-		if (indice->cita->nombreCliente == buscarNomCliente)
-			break;
-		indice = indice->siguiente;
-	}
-	return indice;
 }
 
 bool menuVentanas(int opcion, HWND ventana) {
 
 	switch (opcion) {
-	case ID_BTN_LOGIN: {
-		return CrearVentanaYCentrar(ventana, MAKEINTRESOURCE(IDD_VENTANA_SESION), VentanaUsuario);
-	} break;
-	case ID_BTN_REGISTRAR: {
-		return CrearVentanaYCentrar(ventana, MAKEINTRESOURCE(IDD_VENTANA_REGISTRAR), VentanaRegistro);
-	} break;
 	case ID_OPERACIONES_AGREGAR:
 		return CrearVentanaYCentrar(ventana, MAKEINTRESOURCE(IDD_VENTANA_AGREGAR), VentanaAgregar);
 		break;
@@ -510,76 +538,23 @@ bool CrearVentanaYCentrar(HWND& ventana, LPCWSTR recursoVentana, DLGPROC procedi
 	return false;
 }
 
-void guardarCitasEnArchivo(const char* nombreArchivo) {
-	// Intentar abrir el archivo para escritura binaria
-	std::ofstream archivo(nombreArchivo, std::ios::binary);
-
-	if (!archivo.is_open()) {
-		// Manejar errores al abrir el archivo
-		MessageBox(nullptr, L"No se pudo abrir el archivo para escritura.", L"Error", MB_OK);
-		return; // Salir de la función si no se pudo abrir el archivo
-	}
-
-	NODOCITA* nodo = LISTACITAS.origen;
-
-	while (nodo != nullptr) {
-		// Comprobar si el nodo o la cita son nulos antes de intentar escribirlos
-		if (nodo->cita != nullptr) {
-			// Intentar escribir el nodo->cita en el archivo
-			archivo.write(reinterpret_cast<const char*>(nodo->cita), sizeof(CITA));
-		}
-		nodo = nodo->siguiente;
-	}
-
-	archivo.close(); // Cerrar el archivo después de escribir
-
-	if (archivo.fail()) {
-		// Manejar errores al cerrar el archivo
-		MessageBox(nullptr, L"No se pudo cerrar el archivo correctamente.", L"Error", MB_OK);
-	}
+NODOCITA* nuevoNodo(CITA* cita) {
+	NODOCITA* nodo = new NODOCITA;
+	nodo->cita = cita;
+	nodo->siguiente = nullptr;
+	return nodo;
 }
 
-void cargarCitasDesdeArchivo(const char* nombreArchivo) {
-	std::ifstream archivo(nombreArchivo, std::ios::binary);
-
-	if (archivo.is_open()) {
-		// Primero, elimina todas las citas existentes en la lista para evitar duplicados
-		EliminarListaCita();
-
-		// Busca el tamaño del archivo para asignar memoria
-		archivo.seekg(0, std::ios::end);
-		std::streampos fileSize = archivo.tellg();
-		archivo.seekg(0, std::ios::beg);
-
-		if (fileSize <= 0) {
-			// El archivo está vacío, no hay datos que leer.
-			archivo.close();
-			return;
-		}
-
-		// Crea un buffer para leer los datos
-		char* buffer = new char[fileSize];
-
-		// Lee los datos en el buffer
-		archivo.read(buffer, fileSize);
-
-		// Cerrar el archivo
-		archivo.close();
-
-		// Procesar los datos en el buffer
-		const CITA* citaData = reinterpret_cast<const CITA*>(buffer);
-		size_t numCitas = fileSize / sizeof(CITA);
-
-		for (size_t i = 0; i < numCitas; ++i) {
-			CITA* nuevaCita = crearCita(citaData[i].nombreCliente, citaData[i].fechaHora, citaData[i].nombreMascota, citaData[i].motivo, citaData[i].costo, citaData[i].status);
-			agregarCitaFinal(nuevaCita);
-		}
-		// Liberar la memoria del buffer
-		delete[] buffer;
+NODOCITA* buscarNombre(const string& buscarNomCliente) {
+	if (LISTACITAS.origen == nullptr)
+		return nullptr;
+	NODOCITA* indice = LISTACITAS.origen;
+	while (indice != nullptr) {
+		if (indice->cita->nombreCliente == buscarNomCliente)
+			break;
+		indice = indice->siguiente;
 	}
-	else {
-		MessageBox(nullptr, L"No se pudo abrir el archivo para lectura.", L"Error", MB_OK);
-	}
+	return indice;
 }
 
 CITA* crearCita(const string& nombreCliente, const string& fechaHora, const string& nombreMascota, const string& motivo, float costo, const string& status) {
@@ -671,3 +646,129 @@ void EliminarListaCita() {
 	}
 }
 
+void guardarCitasEnArchivo(const char* nombreArchivo) {
+	// Intentar abrir el archivo para escritura binaria
+	std::ofstream archivo(nombreArchivo, std::ios::binary);
+
+	if (!archivo.is_open()) {
+		// Manejar errores al abrir el archivo
+		MessageBox(nullptr, L"No se pudo abrir el archivo para escritura.", L"Error", MB_OK);
+		return; // Salir de la función si no se pudo abrir el archivo
+	}
+
+	NODOCITA* nodo = LISTACITAS.origen;
+
+	while (nodo != nullptr) {
+		// Comprobar si el nodo o la cita son nulos antes de intentar escribirlos
+		if (nodo->cita != nullptr) {
+			// Intentar escribir el nodo->cita en el archivo
+			archivo.write(reinterpret_cast<const char*>(nodo->cita), sizeof(CITA));
+		}
+		nodo = nodo->siguiente;
+	}
+
+	archivo.close(); // Cerrar el archivo después de escribir
+
+	if (archivo.fail()) {
+		// Manejar errores al cerrar el archivo
+		MessageBox(nullptr, L"No se pudo cerrar el archivo correctamente.", L"Error", MB_OK);
+	}
+}
+
+void cargarCitasDesdeArchivo(const char* nombreArchivo) {
+	std::ifstream archivo(nombreArchivo, std::ios::binary);
+
+	if (archivo.is_open()) {
+		// Primero, elimina todas las citas existentes en la lista para evitar duplicados
+		EliminarListaCita();
+
+		// Busca el tamaño del archivo para asignar memoria
+		archivo.seekg(0, std::ios::end);
+		std::streampos fileSize = archivo.tellg();
+		archivo.seekg(0, std::ios::beg);
+
+		if (fileSize <= 0) {
+			// El archivo está vacío, no hay datos que leer.
+			archivo.close();
+			return;
+		}
+
+		// Crea un buffer para leer los datos
+		char* buffer = new char[fileSize];
+
+		// Lee los datos en el buffer
+		archivo.read(buffer, fileSize);
+
+		// Cerrar el archivo
+		archivo.close();
+
+		// Procesar los datos en el buffer
+		const CITA* citaData = reinterpret_cast<const CITA*>(buffer);
+		size_t numCitas = fileSize / sizeof(CITA);
+
+		for (size_t i = 0; i < numCitas; ++i) {
+			CITA* nuevaCita = crearCita(citaData[i].nombreCliente, citaData[i].fechaHora, citaData[i].nombreMascota, citaData[i].motivo, citaData[i].costo, citaData[i].status);
+			agregarCitaFinal(nuevaCita);
+		}
+		// Liberar la memoria del buffer
+		delete[] buffer;
+	}
+	else {
+		MessageBox(nullptr, L"No se pudo abrir el archivo para lectura.", L"Error", MB_OK);
+	}
+}
+
+VETERINARIO* crearUsuario(const string& nombreVeterinario, const string& cedula, const string& nombreUsuario, const string& pswUsuario) {
+	VETERINARIO* nuevo = new VETERINARIO;
+	nuevo->nombreVeterinario = nombreVeterinario;
+	nuevo->cedula = cedula;
+	nuevo->usuario = nombreUsuario;
+	nuevo->contrasena = pswUsuario;
+	return nuevo;
+}
+
+NODOVET* nuevoNodoVeterinario(VETERINARIO* veterinario) {
+	NODOVET* nodo = new NODOVET;
+	nodo->veterinario = veterinario;
+	nodo->siguiente = nullptr;
+	return nodo;
+}
+
+NODOVET* validarUsuarioPsw(const string& usuario, const string& psw) {
+	if (LISTAVETERINARIOS.origen == nullptr)
+		return nullptr;
+	NODOVET* indice = LISTAVETERINARIOS.origen;
+	while (indice != nullptr) {
+		if (indice->veterinario->usuario == usuario && indice->veterinario->contrasena == psw)
+			break;
+		indice = indice->siguiente;
+	}
+	return indice;
+}
+
+void agregarVeterinarioFinal(VETERINARIO* veterinario) {
+	NODOVET* nodo = nuevoNodoVeterinario(veterinario);
+	if (LISTAVETERINARIOS.origen == nullptr) {
+		LISTAVETERINARIOS.origen = nodo;
+		LISTAVETERINARIOS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+	else {
+		LISTAVETERINARIOS.fin->siguiente = nodo;
+		LISTAVETERINARIOS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+}
+
+bool verificarNombreUsuarioExiste(const string& usuario) {
+	if (LISTAVETERINARIOS.origen == nullptr)
+		return false;
+	NODOVET* indice = LISTAVETERINARIOS.origen;
+	while (indice != nullptr) {
+		if (indice->veterinario->usuario == usuario) {
+			return true;
+		}
+		indice = indice->siguiente;
+	}
+	return false;
+}

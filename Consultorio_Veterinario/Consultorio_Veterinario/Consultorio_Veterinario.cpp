@@ -5,17 +5,40 @@
 
 using namespace std;
 
+struct VETERINARIO
+{
+	char nombreVeterinario[100];
+	char cedula[100];
+	//Foto
+	char usuario[100];
+	char contrasena[100];
+};
+
+struct NODOVET {
+	VETERINARIO* veterinario; //datos de veterinario
+	NODOVET* anterior; //nodo datos de veterinario anterior
+	NODOVET* siguiente; //nodo datos de veterinario despues
+};
+
+struct VETERINARIOS {
+	NODOVET* origen; //inicio del nodo(lista)
+	NODOVET* fin; //final del nodo(lista)
+}LISTAVETERINARIOS;
+
 // Definición de la estructura Cita
-struct CITA {
-	char fechaHora[100];
+struct CITA
+{
 	char nombreCliente[100];
 	char nombreMascota[100];
 	char motivo[100];
 	float costo;
+	char fechaHora[100];
 	char status[100];
+	char cedula[100];
 };
 
 // Definición de la estructura NODOCITA para apuntar a una cita
+
 struct NODOCITA {
 	CITA* cita;
 	NODOCITA* anterior;
@@ -27,7 +50,10 @@ struct CITAS {
 	NODOCITA* fin;
 }LISTACITAS;
 
-CITA* crearCita(char nombreCliente[100], char fechaHora[100], char nombreMascota[100], char motivo[100], float costo, char status[100]) {
+int mainVet();
+NODOVET* nuevoNodoVeterinario(VETERINARIO* veterinario);
+
+CITA* crearCita(char nombreCliente[100], char fechaHora[100], char nombreMascota[100], char motivo[100], float costo, char status[100], char cedulaVeterinario[100]) {
 	CITA* nuevo = new CITA;
 	nuevo->costo = costo;
 	strcpy_s(nuevo->fechaHora, fechaHora);
@@ -35,6 +61,7 @@ CITA* crearCita(char nombreCliente[100], char fechaHora[100], char nombreMascota
 	strcpy_s(nuevo->nombreCliente, nombreCliente);
 	strcpy_s(nuevo->nombreMascota, nombreMascota);
 	strcpy_s(nuevo->status, status);
+	strcpy_s(nuevo->cedula, cedulaVeterinario);
 	return nuevo;
 }
 
@@ -55,44 +82,6 @@ NODOCITA* buscarNombre(char* buscarNomCliente) {
 		indice = indice->siguiente;
 	}
 	return indice;
-}
-
-void AgregarCitaInicio(CITA* cita) {
-	NODOCITA* nodo = nuevoNodo(cita);
-	if (LISTACITAS.origen == NULL) {
-		LISTACITAS.origen = nodo;
-		LISTACITAS.fin = nodo;
-		nodo->siguiente = NULL;
-	}
-	else {
-		nodo->siguiente = LISTACITAS.origen;
-		LISTACITAS.origen = nodo;
-	}
-}
-
-void agregarCitaFinal(CITA* cita) {
-	NODOCITA* nodo = nuevoNodo(cita);
-	if (LISTACITAS.origen == NULL) {
-		LISTACITAS.origen = nodo;
-		LISTACITAS.fin = nodo;
-		nodo->siguiente = NULL;
-	}
-	else {
-		LISTACITAS.fin->siguiente = nodo;
-		LISTACITAS.fin = nodo;
-		nodo->siguiente = NULL;
-	}
-}
-
-void AgregarCitaMedio(char* buscar, CITA* cita) {
-	NODOCITA* busqueda = buscarNombre(buscar);
-	if (busqueda == NULL)
-		return;
-	if (busqueda == LISTACITAS.fin)
-		return agregarCitaFinal(cita);
-	NODOCITA* nodo = nuevoNodo(cita);
-	nodo->siguiente = busqueda->siguiente;
-	busqueda->siguiente = nodo;
 }
 
 CITA* EliminarCitaInicio() {
@@ -151,6 +140,44 @@ CITA* EliminarCitaMedio(char* nombre) {
 	return cita;
 }
 
+void AgregarCitaInicio(CITA* cita) {
+	NODOCITA* nodo = nuevoNodo(cita);
+	if (LISTACITAS.origen == NULL) {
+		LISTACITAS.origen = nodo;
+		LISTACITAS.fin = nodo;
+		nodo->siguiente = NULL;
+	}
+	else {
+		nodo->siguiente = LISTACITAS.origen;
+		LISTACITAS.origen = nodo;
+	}
+}
+
+void agregarCitaFinal(CITA* cita) {
+	NODOCITA* nodo = nuevoNodo(cita);
+	if (LISTACITAS.origen == NULL) {
+		LISTACITAS.origen = nodo;
+		LISTACITAS.fin = nodo;
+		nodo->siguiente = NULL;
+	}
+	else {
+		LISTACITAS.fin->siguiente = nodo;
+		LISTACITAS.fin = nodo;
+		nodo->siguiente = NULL;
+	}
+}
+
+void AgregarCitaMedio(char* buscar, CITA* cita) {
+	NODOCITA* busqueda = buscarNombre(buscar);
+	if (busqueda == NULL)
+		return;
+	if (busqueda == LISTACITAS.fin)
+		return agregarCitaFinal(cita);
+	NODOCITA* nodo = nuevoNodo(cita);
+	nodo->siguiente = busqueda->siguiente;
+	busqueda->siguiente = nodo;
+}
+
 void ImprimirListaCita() {
 	NODOCITA* indice = LISTACITAS.origen;
 	while (indice != NULL) {
@@ -161,16 +188,17 @@ void ImprimirListaCita() {
 		cout << "Motivo: " << indice->cita->motivo << endl;
 		cout << "Mascota: " << indice->cita->nombreMascota << endl;
 		cout << "Estatus: " << indice->cita->status << endl;
+		cout << "Veterinario: " << indice->cita->cedula << endl;
 		cout << ")" << endl;
 		indice = indice->siguiente;
 	}
 }
 
 void EliminarListaCita() {
-	while (LISTACITAS.origen != NULL) {
+	while (LISTACITAS.origen != nullptr) {
 		NODOCITA* temporal = LISTACITAS.origen;
 		LISTACITAS.origen = LISTACITAS.origen->siguiente;
-		if (temporal->cita != NULL)
+		if (temporal->cita != nullptr)
 			delete temporal->cita;
 		delete temporal;
 	}
@@ -179,7 +207,7 @@ void EliminarListaCita() {
 void EditarCita(char* nombreCliente) {
 
 	NODOCITA* cita = buscarNombre(nombreCliente);
-	if (cita == NULL) {
+	if (cita == nullptr) {
 		cout << "La cita no se encontró." << endl;
 		return;
 	}
@@ -220,13 +248,57 @@ void EditarCita(char* nombreCliente) {
 
 void EliminarCitaPorNombre(char* nombreCliente) {
 	CITA* citaEliminada = EliminarCitaMedio(nombreCliente);
-	if (citaEliminada != NULL) {
+	if (citaEliminada != nullptr) {
 		cout << "Cita eliminada exitosamente." << endl;
 		delete citaEliminada;
 	}
 	else {
 		cout << "La cita no se encontro." << endl;
 	}
+}
+
+VETERINARIO* crearUsuario(char* nombreVeterinario, char* cedula, char* nombreUsuario, char* pswUsuario) {
+	VETERINARIO* nuevo = new VETERINARIO;
+	strcpy_s(nuevo->nombreVeterinario, nombreVeterinario);
+	strcpy_s(nuevo->cedula, cedula);
+	strcpy_s(nuevo->usuario, nombreUsuario);
+	strcpy_s(nuevo->contrasena, pswUsuario);
+	return nuevo;
+}
+
+void agregarVeterinarioFinal(VETERINARIO* veterinario) {
+	NODOVET* nodo = nuevoNodoVeterinario(veterinario);
+	if (LISTAVETERINARIOS.origen == nullptr) {
+		LISTAVETERINARIOS.origen = nodo;
+		LISTAVETERINARIOS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+	else {
+		LISTAVETERINARIOS.fin->siguiente = nodo;
+		LISTAVETERINARIOS.fin = nodo;
+		nodo->siguiente = nullptr;
+	}
+}
+
+NODOVET* nuevoNodoVeterinario(VETERINARIO* veterinario) {
+	NODOVET* nodo = new NODOVET;
+	nodo->veterinario = veterinario;
+	nodo->siguiente = nullptr;
+	return nodo;
+}
+
+bool verificarUsuario(char* usuario) {
+
+	if (LISTAVETERINARIOS.origen == nullptr)
+		return false;
+	NODOVET* indice = LISTAVETERINARIOS.origen;
+	while (indice != nullptr) {
+		if (strcmp(indice->veterinario->usuario, usuario) == 0) {
+			return true;
+		}
+		indice = indice->siguiente;
+	}
+	return false;
 }
 
 //Validar canedas de texto
@@ -240,6 +312,7 @@ bool esTextoValido(const std::string& nombre) {
 }
 
 // Validar si una cadena contiene solo números
+
 bool esNumeroValido(const std::string& str) {
 	for (char c : str) {
 		if (!std::isdigit(c)) {
@@ -249,51 +322,116 @@ bool esNumeroValido(const std::string& str) {
 	return true;
 }
 
-void guardarCitasEnArchivo(const char* nombreArchivo) {
-	std::ofstream archivo(nombreArchivo, std::ios::binary);
+bool buscarUsuario(char* usuario, char* psw, char* cedula) {
 
-	if (archivo.is_open()) {
-		NODOCITA* nodo = LISTACITAS.origen;
-
-		while (nodo != NULL) {
-			archivo.write(reinterpret_cast<const char*>(nodo->cita), sizeof(CITA));
-			nodo = nodo->siguiente;
+	if (LISTAVETERINARIOS.origen == nullptr)
+		return false;
+	NODOVET* indice = LISTAVETERINARIOS.origen;
+	while (indice != nullptr) {
+		if (strcmp(indice->veterinario->usuario, usuario) == 0 && strcmp(indice->veterinario->contrasena, psw) == 0) {
+			return true;
 		}
-
-		archivo.close();
-		std::cout << "Citas guardadas en el archivo binario." << std::endl;
+		indice = indice->siguiente;
 	}
-	else {
-		std::cerr << "No se pudo abrir el archivo para escritura." << std::endl;
-	}
+	return false;
 }
 
-void cargarCitasDesdeArchivo(const char* nombreArchivo) {
-	std::ifstream archivo(nombreArchivo, std::ios::binary);
-
-	if (archivo.is_open()) {
-		// Primero, elimina todas las citas existentes en la lista
-		EliminarListaCita();
-
-		CITA cita;
-		while (archivo.read(reinterpret_cast<char*>(&cita), sizeof(CITA))) {
-			CITA* nuevaCita = crearCita(cita.nombreCliente, cita.fechaHora, cita.nombreMascota, cita.motivo, cita.costo, cita.status);
-			agregarCitaFinal(nuevaCita);
-		}
-
-		archivo.close();
-		std::cout << "Citas cargadas desde el archivo binario." << std::endl;
-	}
-	else {
-		std::cerr << "No se pudo abrir el archivo para lectura." << std::endl;
-	}
-}
-
+//NODOVET* buscarUsuario(char* usuario, char* psw) {
+//	char cedula;
+//	if (LISTAVETERINARIOS.origen == NULL)
+//		return NULL;
+//	NODOVET* indice = LISTAVETERINARIOS.origen;
+//	while (indice != NULL) {
+//		if (strcmp(indice->veterinario->usuario, usuario) == 0 && strcmp(indice->veterinario->contrasena, psw) == 0) {
+//			strcpy_s(indice->veterinario->cedula, &cedula);
+//			return cedula;
+//		}
+//		indice = indice->siguiente;
+//	}
+//
+//	return "Falso";
+//}
 
 int main()
 {
-	CITA citas;
-	cargarCitasDesdeArchivo("citas.dat");
+	//cargarCitasDesdeArchivo("citas.dat");
+	while (true)
+	{
+		cout << "\nOpciones:" << endl;
+		cout << "1 Inicio Sesion:" << endl;
+		cout << "2 Registrar Usuario:" << endl;
+		cout << "Seleccione una opción: ";
+
+		int opcion;
+		cin >> opcion;
+
+		if (opcion == 1) { //Inicio Sesion
+
+			char usuario[100];
+			char psw[100];
+
+			cout << "Usuario: " << endl;
+			cin.ignore();
+			cin.getline(usuario, 100);
+
+			if (!esTextoValido(usuario)) {
+				cout << "El nombre no es válido." << endl;
+				continue;
+			}
+
+			cout << "psw: " << endl;
+			cin.getline(psw, 100);
+			char cedulaVeterinario;
+
+			if (buscarUsuario) {
+				mainVet();
+			}
+
+		}
+		else if (opcion == 2) {
+
+			char nombre[100];
+			char cedula[100];
+			char usuario[100];
+			char psw[100];
+
+			cout << "Ingrese el nombre: " << endl;
+			cin.ignore();
+			cin.getline(nombre, 100);
+
+			if (!esTextoValido(nombre)) {
+				cout << "El nombre no es válido. Debe contener solo letras y espacios, Ultima oportunidad" << endl;
+				continue;
+			}
+
+			cout << "cedula: " << endl;
+			cin.getline(cedula, 100);
+
+			cout << "usuraio: " << endl;
+			cin.getline(usuario, 100);
+
+
+			if (verificarUsuario(usuario)) {
+				cout << "Este Usuario ya existe, Ingrese de nuevo" << endl;
+				continue;
+			}
+
+			cout << "Psw: " << endl;
+			cin.getline(psw, 100);
+
+			agregarVeterinarioFinal(crearUsuario(nombre, cedula, usuario, psw));
+		}
+		else
+		{
+			cout << "Opcion no valida. Intente de nuevo." << endl;
+		}
+	}
+	return 0;
+}
+
+int mainVet()
+{
+	//cargarCitasDesdeArchivo("citas.dat");
 	while (true)
 	{
 		cout << "\nOpciones:" << endl;
@@ -347,7 +485,7 @@ int main()
 				continue;
 			}
 
-			agregarCitaFinal(crearCita(nombreCliente, fechaHora, nombreMascota, motivo, costo, status));
+			agregarCitaFinal(crearCita(nombreCliente, fechaHora, nombreMascota, motivo, costo, status, cedulaVeterinario));
 			cout << "Producto agregado al inventario." << endl;
 		}
 		else if (opcion == 2)
@@ -373,7 +511,7 @@ int main()
 			break; // Salir del programa
 		}
 		else if (opcion == 6) {
-			guardarCitasEnArchivo("citas.dat");
+			//guardarCitasEnArchivo("citas.dat");
 		}
 		else
 		{
@@ -383,3 +521,5 @@ int main()
 
 	return 0;
 }
+
+

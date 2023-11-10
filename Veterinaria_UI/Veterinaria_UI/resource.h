@@ -48,6 +48,8 @@
 #define IDB_DLT_DLT                     1033
 #define IDB_DLT_CANCEL                  1034
 #define IDC_DLT_LIST                    1035
+#define IDB_REG_CANCEL                  1036
+#define IDB_REG_USUARIO                 1037
 #define ID_OPERACIONES_AGREGAR          40001
 #define ID_OPERACIONES_EDITAR           40002
 #define ID_OPERACIONES_ELIMINAR         40003
@@ -55,13 +57,14 @@
 #define ID_OPERACIONES_INFO             40005
 #define ID_OPERACIONES_CERRAR_SESION    40006
 
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        114
 #define _APS_NEXT_COMMAND_VALUE         40005
-#define _APS_NEXT_CONTROL_VALUE         1036
+#define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

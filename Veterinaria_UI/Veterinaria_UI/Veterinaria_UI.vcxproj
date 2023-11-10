@@ -127,7 +127,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="manejoUsuarios.cpp" />
     <ClCompile Include="Veterinaria_UI.cpp" />
   </ItemGroup>
   <ItemGroup>

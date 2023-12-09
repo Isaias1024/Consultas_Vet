@@ -1,0 +1,30 @@
+﻿  DiseñosWinapi.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\filesystem(13): warning STL4038: The contents of <filesystem> are available only with C++17 or later.
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(143,12): warning C4244: 'return': conversión de 'WPARAM' a 'int'; posible pérdida de datos
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(974,15): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(1177,15): warning C4244: 'inicializando': conversión de 'LRESULT' a 'int'; posible pérdida de datos
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(1677,30): warning C4473: "sscanf_s": no se pasaron suficientes argumentos para la cadena de formato
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(1677,30): message : los marcadores de posición y sus parámetros esperan 4 argumentos variádicos, pero se proporcionaron 3
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(1677,30): message : el argumento variádico 4 que falta es requerido por la cadena de formato '%d'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xstring(2728,53): warning C4244: 'argumento': conversión de 'wchar_t' a 'const _Elem'; posible pérdida de datos
+          with
+          [
+              _Elem=char
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xstring(2584,17): message : Vea la referencia a la creación de una instancia de la función plantilla "void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<wchar_t*,wchar_t*,_Size_type>(_Iter,const _Sent,_Size)" que se está compilando
+          with
+          [
+              _Size_type=unsigned __int64,
+              _Iter=wchar_t *,
+              _Sent=wchar_t *,
+              _Size=unsigned __int64
+          ]
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(241,29): message : Vea la referencia a la creación de una instancia de la función plantilla "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)" que se está compilando
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\DiseñosWinapi\DiseñosWinapi.cpp(241,29): message : vea la primera referencia a “std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string” en “VentanaRegistroUsuario”
+  DiseñosWinapi.vcxproj -> D:\Cursos\Proyecto Veteriania\Final\Diseños08_12\x64\Debug\DiseñosWinapi.exe
